@@ -1,37 +1,28 @@
-#include <DHT.h>
-
-#define DHT_PIN 2
-#define FAN_PIN 9
-#define DHT_TYPE DHT11
-
-DHT dht(DHT_PIN, DHT_TYPE);
+#define TEMP_SENSOR_PIN A0 
+#define RELAY_PIN 5         
 
 void setup() {
-  Serial.begin(9600);
-  dht.begin();
-  pinMode(FAN_PIN, OUTPUT);
-  Serial.println("Smart Fan Controller Initialized...");
+  Serial.begin(9600);        
+  pinMode(RELAY_PIN, OUTPUT); 
+  digitalWrite(RELAY_PIN, LOW); 
 }
 
 void loop() {
-  delay(2000);
+  int sensorValue = analogRead(TEMP_SENSOR_PIN);  
+  float voltage = sensorValue * (5.0 / 1023.0);   
+  float temperatureC = (voltage - 0.5) * 100;     
 
-  float temperature = dht.readTemperature();
+  Serial.print("Temperature: "); 
+  Serial.print(temperatureC);     
+  Serial.println(" *C");          
 
-  if (isnan(temperature)) {
-    Serial.println("Error: Failed to read from DHT11 sensor.");
-    return;
+  // Fan control logic: If temperature > 30°C, turn on the fan (LED)
+  if (temperatureC > 30) {
+    digitalWrite(RELAY_PIN, HIGH); 
+  } else {
+    digitalWrite(RELAY_PIN, LOW);   
   }
 
-  Serial.print("Temperature: ");
-  Serial.print(temperature);
-  Serial.println(" °C");
-
-  int fanSpeed = map(temperature, 25, 40, 0, 255);
-  fanSpeed = constrain(fanSpeed, 0, 255);
-
-  analogWrite(FAN_PIN, fanSpeed);
-
-  Serial.print("Fan Speed: ");
-  Serial.println(fanSpeed);
+  delay(2000);  
 }
+
